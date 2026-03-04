@@ -6,7 +6,7 @@ from datetime import datetime
 
 # Configuración Anexo 3
 CONSUMO = ["AN", "AG", "AL", "AP", "AU", "BD", "BT", "CE", "CF", "CO", "CS", "CT", "DE", "EQ"
-           , "FI", "FT", "HA", "HE", "HI", "LS", "MI", "OA", "PA", "PB", "PG", "PL","PN", "PQ"
+           , "FI", "FT", "HA", "HE", "HI", "LS", "MI", "OA", "PA", "PB", "PG", "PL","PN", "PQ",
            "PR", "PS", "RC", "RD", "RE", "RF", "RN", "RV", "SE", "SG", "SM", "ST", "UK", "US"]
 REVOLVENTE = ["CL", "LR"]
 TDC = ["CC", "SC", "TE"]
@@ -23,6 +23,34 @@ def limpiar_numero(valor):
         return int(valor)
     except:
         return np.nan
+
+
+def normalizar_fecha(fecha):
+
+    """
+    Convierte fechas a formato YYYYMMDD.
+    Si no puede interpretarse, devuelve NaN.
+    """
+
+    if fecha is None or fecha == "":
+        return np.nan
+
+    fecha = str(fecha)
+
+    formatos = [
+        "%d%m%Y",
+        "%Y%m%d",
+        "%Y-%m-%d",
+        "%d-%m-%Y"
+    ]
+
+    for f in formatos:
+        try:
+            return datetime.strptime(fecha, f).strftime("%Y%m%d")
+        except:
+            pass
+
+    return np.nan
 
 
 def generar_id_anonimo(json_data):
@@ -86,12 +114,15 @@ def fecha_ult_consulta(consultas):
 
         if fecha:
             try:
-                fechas.append(datetime.strptime(fecha, "%d%m%Y"))
+                fechas.append(datetime.strptime(str(fecha), "%d%m%Y"))
             except:
-                pass
+                try:
+                    fechas.append(datetime.strptime(str(fecha), "%Y%m%d"))
+                except:
+                    pass
 
     if fechas:
-        return max(fechas).strftime("%Y-%m-%d")
+        return max(fechas).strftime("%Y%m%d")
 
     return np.nan
 
@@ -204,7 +235,7 @@ def procesar_json(path_json):
         "SALDOACTTDC": SALDOACTTDC,
         "CREDMAXAUTTOTAL": CREDMAXAUTTOTAL,
         "SALDOVENCTOTAL": SALDOVENCTOTAL,
-        "FECHA": resumen.get("fechaSolicitudReporteMasReciente", np.nan),
+        "FECHA": normalizar_fecha(resumen.get("fechaSolicitudReporteMasReciente")),
         "FECHAULTCONSULTA": fecha_ult_consulta(consultas),
         "PEORMOP": peor_mop(cuentas)
     }
