@@ -231,7 +231,7 @@ def procesar_json(path_json, id_solicitud_externo=None):
 
     # Preparar todas las variables con sus valores
     variables_completas = {
-        "IDCLIENTE": id_cliente,
+        "IDCLIENTE": id_solicitud_externo if id_solicitud_externo else "imputado_no_disponible",
         "CREDMAXAUTCONS": CREDMAXAUTCONS,
         "MONTOPAGARCONS": MONTOPAGARCONS,
         "SALDOACTCONS": SALDOACTCONS,
@@ -269,6 +269,9 @@ def procesar_json(path_json, id_solicitud_externo=None):
             # Generar advertencia para variables sin información
             warnings.append(f"Variable '{variable}' no tiene información disponible y no será incluida en la salida")
 
+    # Agregar GMR_NUMERO_CONTROL (numeroControlConsulta) para GMR_IDELEMENTO
+    resultado["GMR_NUMERO_CONTROL"] = id_cliente
+    
     # Agregar IDSOLICITUD si fue proporcionado
     if id_solicitud_externo:
         resultado["IDSOLICITUD"] = id_solicitud_externo
@@ -291,8 +294,9 @@ def generar_xml(datos):
     ET.SubElement(gmr_header, "GMR_RESERVED").text = "00"
     ET.SubElement(gmr_header, "GMR_LEVELS").text = "1"
     
-    # GMR_IDELEMENTO: usar IDSOLICITUD si está disponible, sino usar IDCLIENTE
-    gmr_idelemento = datos.get("IDSOLICITUD", datos.get("IDCLIENTE", "0"))
+    # GMR_IDELEMENTO: usar numeroControlConsulta del Buró
+    # Necesitamos agregar id_cliente (numeroControlConsulta) a los datos
+    gmr_idelemento = datos.get("GMR_NUMERO_CONTROL", "0")
     ET.SubElement(gmr_header, "GMR_IDELEMENTO").text = str(gmr_idelemento)
     
     # ClienteIn con los datos
