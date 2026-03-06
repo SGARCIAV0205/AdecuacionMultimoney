@@ -1,150 +1,168 @@
-﻿# Resumen Ejecutivo - Procesador de Variables Buró de Crédito
+# Procesador de Variables - Modelo Multimoney
 
-## Descripción del Sistema
+## Descripción
 
-Sistema automatizado que procesa archivos JSON del Buró de Crédito y genera archivos XML en formato GMR_DATALIST listos para el modelo de scoring Multimoney.
+Este proyecto procesa archivos JSON provenientes de consultas de Buró de Crédito y extrae las variables definidas como "Entrada 0" para el modelo Multimoney, generando un XML en formato GMR_DATALIST listo para scoring.
+
+El sistema utiliza el `numeroControlConsulta` del Buró como identificador único de cada solicitud.
 
 ## Características Principales
 
-### 🎯 Funcionalidad Core
-- Extracción automática de 37 variables del Buró de Crédito
-- Generación de XML en formato GMR_DATALIST
-- Filtrado inteligente de variables sin información
-- Sistema de advertencias para datos faltantes
+### Filtrado Inteligente de Variables
+- Las variables sin información válida (valores NaN, vacíos o nulos) NO se incluyen en la salida
+- Se generan advertencias específicas para cada variable excluida
+- Solo se exportan variables con datos reales y utilizables
 
-### 🔑 Identificadores
-- **IDCLIENTE**: Extraído automáticamente del `numeroControlConsulta` del Buró
-- **IDSOLICITUD**: Parámetro opcional para trazabilidad personalizada del cliente
+### Variables Procesadas
 
-### 📊 Variables Procesadas
+El sistema extrae y procesa las siguientes variables en formato XML:
 
-| Categoría | Variables |
-|-----------|-----------|
-| **Consumo** | CREDMAXAUTCONS, MONTOPAGARCONS, SALDOACTCONS |
-| **Revolvente** | CREDMAXAUTREV, SALDOACTREV |
-| **TDC** | SALDOACTTDC, LIMITECREDITO |
-| **Totales** | CREDMAXAUTTOTAL, SALDOVENCTOTAL |
-| **Fechas** | FECHAREPORTE, FECHAULTCONSULTA |
-| **Comportamiento** | PEORMOP, PEORHIST01-24 |
+- **IDCLIENTE**: Identificador único (numeroControlConsulta del Buró)
+- **CREDMAXAUTCONS**: Crédito máximo autorizado en consumo
+- **MONTOPAGARCONS**: Monto a pagar en consumo
+- **SALDOACTCONS**: Saldo actual en consumo
+- **CREDMAXAUTREV**: Crédito máximo autorizado revolvente
+- **SALDOACTREV**: Saldo actual revolvente
+- **LIMITECREDITO**: Límite de crédito
+- **SALDOACTTDC**: Saldo actual en tarjetas de crédito
+- **CREDMAXAUTTOTAL**: Crédito máximo autorizado total
+- **SALDOVENCTOTAL**: Saldo vencido total
+- **FECHAREPORTE**: Fecha de solicitud más reciente
+- **FECHAULTCONSULTA**: Fecha de última consulta
+- **PEORMOP**: Peor MOP (Manner of Payment)
+- **PEORHIST01** a **PEORHIST24**: Histórico de pagos por mes
 
-## Modos de Uso
+## Uso
 
-### 1. Línea de Comandos
+### Modo Script (Python)
+
 ```bash
+# Uso básico (usa IDCLIENTE del Buró en GMR_IDELEMENTO)
+python procesador_variables.py
+
+# Con IDSOLICITUD personalizado para trazabilidad
 python procesador_variables.py --idsolicitud "SOL-2026-001"
+
+# Especificando archivos de entrada y salida
+python procesador_variables.py --input mi_archivo.json --output salida.xml --idsolicitud "SOL-123"
 ```
 
-### 2. Aplicación Web
+Parámetros disponibles:
+- `--input` o `-i`: Ruta del archivo JSON de entrada (default: json/RCO_Int_007_Hawk_Response.json)
+- `--output` o `-o`: Ruta del archivo XML de salida (default: output_modelo_multimoney.xml)
+- `--idsolicitud` o `-id`: ID de solicitud externo para GMR_IDELEMENTO (opcional)
+
+El script generará:
+- Archivo de salida XML con el formato GMR_DATALIST
+- Advertencias en consola sobre variables excluidas
+- Confirmación del IDSOLICITUD o IDCLIENTE usado en GMR_IDELEMENTO
+
+### Modo Aplicación Web (Streamlit)
+
 ```bash
 streamlit run app.py
 ```
 
-### 3. Notebook Jupyter
-Abrir `procesador_variables.ipynb` para análisis interactivo
+La aplicación web permite:
+- Ingresar un IDSOLICITUD personalizado para trazabilidad
+- Cargar múltiples archivos JSON
+- Visualizar resultados en tabla
+- Ver advertencias de variables faltantes
+- Descargar resultados en CSV o XML
 
-## Formato de Salida
+El IDSOLICITUD ingresado se usará en el campo GMR_IDELEMENTO del XML para todos los archivos procesados en esa sesión.
 
+## Ejemplo de Salida
+
+### XML generado (sin IDSOLICITUD personalizado):
 ```xml
 <GMR_DATALIST>
   <GMR_DATA>
     <GMR_HEADER>
-      <GMR_IDELEMENTO>[IDSOLICITUD o IDCLIENTE]</GMR_IDELEMENTO>
+      <GMR_FLOW>1</GMR_FLOW>
+      <GMR_VERSION>0</GMR_VERSION>
+      <GMR_RESERVED>00</GMR_RESERVED>
+      <GMR_LEVELS>1</GMR_LEVELS>
+      <GMR_IDELEMENTO>2424563619</GMR_IDELEMENTO>
     </GMR_HEADER>
     <ClienteIn>
-      <IDCLIENTE>[numeroControlConsulta]</IDCLIENTE>
-      <!-- 37 variables del modelo -->
+      <IDCLIENTE>2424563619</IDCLIENTE>
+      <CREDMAXAUTCONS>1060020</CREDMAXAUTCONS>
+      <MONTOPAGARCONS>23730</MONTOPAGARCONS>
+      <SALDOACTCONS>596709</SALDOACTCONS>
+      <FECHAREPORTE>20260127</FECHAREPORTE>
+      <PEORMOP>96</PEORMOP>
+      <PEORHIST01>6</PEORHIST01>
+      <PEORHIST02>7</PEORHIST02>
+      <!-- ... más variables ... -->
     </ClienteIn>
   </GMR_DATA>
 </GMR_DATALIST>
 ```
 
-## Ventajas del Sistema
+### XML generado (con IDSOLICITUD personalizado "SOL-2026-001"):
+```xml
+<GMR_DATALIST>
+  <GMR_DATA>
+    <GMR_HEADER>
+      <GMR_FLOW>1</GMR_FLOW>
+      <GMR_VERSION>0</GMR_VERSION>
+      <GMR_RESERVED>00</GMR_RESERVED>
+      <GMR_LEVELS>1</GMR_LEVELS>
+      <GMR_IDELEMENTO>SOL-2026-001</GMR_IDELEMENTO>
+    </GMR_HEADER>
+    <ClienteIn>
+      <IDCLIENTE>2424563619</IDCLIENTE>
+      <!-- ... variables ... -->
+    </ClienteIn>
+  </GMR_DATA>
+</GMR_DATALIST>
+```
 
-### ✅ Calidad de Datos
-- Solo incluye variables con información válida
-- Elimina automáticamente valores NaN o vacíos
-- Normaliza formatos de fechas y números
+### Advertencias generadas:
+```
+⚠ No se encontró 'numeroControlConsulta' en el JSON. Se usará 'id_no_disponible' como identificador
+⚠ Variable 'CREDMAXAUTREV' no tiene información disponible y no será incluida en la salida
+⚠ Variable 'SALDOACTTDC' no tiene información disponible y no será incluida en la salida
+⚠ Variable 'FECHAULTCONSULTA' no tiene información disponible y no será incluida en la salida
+```
 
-### ✅ Trazabilidad
-- Doble identificación: IDCLIENTE (Buró) + IDSOLICITUD (Cliente)
-- Advertencias detalladas de datos faltantes
-- Registro completo del procesamiento
+## Instalación
 
-### ✅ Flexibilidad
-- Procesamiento individual o por lotes
-- Interfaz CLI y web
-- Parametrización completa
+```bash
+pip install -r requirements.txt
+```
 
-### ✅ Integración
-- Formato XML estándar GMR_DATALIST
-- Compatible con modelo de scoring
-- Listo para producción
+## Estructura del Proyecto
 
-## Casos de Uso
+```
+.
+├── procesador_variables.py    # Script principal de procesamiento
+├── procesador_variables.ipynb # Notebook con documentación detallada
+├── app.py                      # Aplicación web Streamlit
+├── requirements.txt            # Dependencias del proyecto
+└── json/                       # Carpeta con archivos JSON de entrada
+```
 
-### Caso 1: Procesamiento Individual
-Cliente envía JSON del Buró → Sistema procesa → Genera XML → Modelo de scoring
+## Metodología de Cálculo
 
-### Caso 2: Procesamiento por Lotes
-Múltiples JSONs → Aplicación web → XMLs consolidados → Análisis masivo
+1. **Limpieza de montos**: Eliminación de símbolos y normalización
+2. **Agregación por tipo de contrato**: Según Anexo 3 del Manual API Reporte de Crédito
+   - **CONSUMO** (AN, AG, AL, AP, AU, etc.): CREDMAXAUTCONS, MONTOPAGARCONS, SALDOACTCONS
+   - **REVOLVENTE** (CL, LR): CREDMAXAUTREV, SALDOACTREV
+   - **TDC** (CC, SC, TE): SALDOACTTDC, LIMITECREDITO
+3. **Cálculo de PEORMOP**: Máximo entre formaPagoActual y mopHistoricoMorosidadMasGrave
+4. **Cálculo de PEOR_HIST_1 a 24**: Últimos 24 caracteres de historicoPagos, alineados desde el mes más reciente
 
-### Caso 3: Integración API
-Sistema externo → Script Python → XML en tiempo real → Decisión crediticia
+## Notas Importantes
 
-## Métricas de Calidad
+- El sistema utiliza el `numeroControlConsulta` del Buró como IDCLIENTE
+- Si no se encuentra el `numeroControlConsulta`, se genera una advertencia y se usa "id_no_disponible"
+- El campo GMR_IDELEMENTO puede usar:
+  - IDSOLICITUD personalizado (si se proporciona como parámetro) para trazabilidad adicional
+  - IDCLIENTE del Buró (si no se proporciona IDSOLICITUD)
+- Solo se incluyen variables con información válida en el XML
+- Las advertencias ayudan a identificar datos faltantes en el JSON de origen
+- El IDCLIENTE siempre se incluye en ClienteIn
+- La salida es un archivo XML en formato GMR_DATALIST compatible con el modelo de scoring
 
-- ✅ 100% de variables validadas
-- ✅ Advertencias específicas por variable
-- ✅ Formato XML validado
-- ✅ Trazabilidad completa
-
-## Requisitos Técnicos
-
-### Software
-- Python 3.7+
-- Librerías: numpy, pandas, streamlit
-
-### Entrada
-- JSON del Buró de Crédito (API Reporte de Crédito)
-- IDSOLICITUD opcional (string)
-
-### Salida
-- XML formato GMR_DATALIST
-- Archivo de advertencias (consola/web)
-
-## Documentación Disponible
-
-| Documento | Propósito |
-|-----------|-----------|
-| README.md | Documentación completa |
-| GUIA_RAPIDA.md | Referencia rápida de uso |
-| CHANGELOG.md | Historial de cambios |
-| procesador_variables.ipynb | Documentación técnica detallada |
-
-## Soporte y Mantenimiento
-
-### Validaciones Implementadas
-- ✅ Estructura del JSON del Buró
-- ✅ Presencia de `numeroControlConsulta`
-- ✅ Validez de valores numéricos
-- ✅ Formato de fechas
-- ✅ Tipos de contrato según Anexo 3
-
-### Sistema de Advertencias
-- Variables sin información
-- Campos faltantes en JSON
-- Valores inválidos
-- Estructura incorrecta
-
-## Próximos Pasos
-
-1. Ejecutar pruebas con datos reales
-2. Validar XML con modelo de scoring
-3. Configurar procesamiento automático
-4. Establecer monitoreo de calidad
-
----
-
-**Versión**: 2.0  
-**Fecha**: Marzo 5, 2026  
-**Estado**: Listo para Producción ✅
