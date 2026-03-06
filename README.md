@@ -1,5 +1,4 @@
-﻿# AdecuacionMultimoney
-# Resumen Ejecutivo - Procesador de Variables Buró de Crédito
+﻿# Resumen Ejecutivo - Procesador de Variables Buró de Crédito
 
 ## Descripción del Sistema
 
@@ -22,8 +21,8 @@ Sistema automatizado que procesa archivos JSON del Buró de Crédito y genera ar
 | Categoría | Variables |
 |-----------|-----------|
 | **Consumo** | CREDMAXAUTCONS, MONTOPAGARCONS, SALDOACTCONS |
-| **Revolvente** | CREDMAXAUTREV, SALDOACTREV, LIMITECREDITO |
-| **TDC** | SALDOACTTDC |
+| **Revolvente** | CREDMAXAUTREV, SALDOACTREV |
+| **TDC** | SALDOACTTDC, LIMITECREDITO |
 | **Totales** | CREDMAXAUTTOTAL, SALDOVENCTOTAL |
 | **Fechas** | FECHAREPORTE, FECHAULTCONSULTA |
 | **Comportamiento** | PEORMOP, PEORHIST01-24 |
