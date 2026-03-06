@@ -346,7 +346,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Procesador de JSON Buró de Crédito a XML')
     parser.add_argument('--input', '-i', default="json/RCO_Int_007_Hawk_Response.json",
                         help='Ruta del archivo JSON de entrada')
-    parser.add_argument('--output', '-o', default="output_modelo_multimoney.xml",
+    parser.add_argument('--output', '-o', default="entradaWSubimia.xml",
                         help='Ruta del archivo XML de salida')
     parser.add_argument('--idsolicitud', '-id', default=None,
                         help='ID de solicitud externo para GMR_IDELEMENTO (opcional)')
